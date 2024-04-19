@@ -1,0 +1,511 @@
+// Code for Department and Employee classes representing your database tables
+
+public class Department
+{
+    public int Dno { get; set; }
+    public string Name { get; set; }
+    public string Location { get; set; }
+}
+
+public class Employee
+{
+    public int Eno { get; set; }
+    public int Dno { get; set; }
+    public string Name { get; set; }
+    public DateTime Dob { get; set; }
+    public string Designation { get; set; }
+    public decimal Salary { get; set; }
+}
+
+// Code for database operations
+
+public class DataAccess
+{
+    private string connectionString = ConfigurationManager.ConnectionStrings["MyConnectionString"].ConnectionString;
+
+    public void AddDepartment(Department department)
+    {
+        // Implement code to insert a department into the database
+    }
+
+    // Implement similar methods for other CRUD operations on departments and employees
+}
+
+// Code for Form1.cs
+
+public partial class Form1 : Form
+{
+    private DataAccess dataAccess;
+
+    public Form1()
+    {
+        InitializeComponent();
+        dataAccess = new DataAccess();
+    }
+
+    private void addDepartmentToolStripMenuItem_Click(object sender, EventArgs e)
+    {
+        // Implement code to open a form to add a new department
+    }
+
+    // Implement similar event handlers for other menu items
+}
+
+
+private void EmployeeCreationForm_Load(object sender, EventArgs e)
+{
+    List<Department> departments = dataAccess.GetDepartments(); // Implement this method to fetch departments from the database
+    
+    foreach (var department in departments)
+    {
+        comboBoxDepartment.Items.Add(department.Name);
+    }
+}
+
+private void btnSave_Click(object sender, EventArgs e)
+{
+    Employee employee = new Employee();
+    employee.Name = txtName.Text;
+    employee.Dob = dateTimePickerDOB.Value;
+    employee.Designation = txtDesignation.Text;
+    employee.Salary = decimal.Parse(txtSalary.Text);
+
+    // Get selected department name from combo box
+    string selectedDepartmentName = comboBoxDepartment.SelectedItem.ToString();
+
+    // Retrieve department details from database using its name
+    Department selectedDepartment = dataAccess.GetDepartmentByName(selectedDepartmentName); // Implement this method
+
+    if (selectedDepartment != null)
+    {
+        employee.Dno = selectedDepartment.Dno;
+        // Save employee to database
+        dataAccess.AddEmployee(employee); // Implement this method
+        MessageBox.Show("Employee saved successfully.");
+    }
+    else
+    {
+        MessageBox.Show("Invalid department selected.");
+    }
+}
+
+public List<Employee> GetEmployeesByDepartment(string departmentName)
+{
+    List<Employee> employees = new List<Employee>();
+    
+    // Implement SQL query to retrieve employees from the specified department
+    string query = "SELECT * FROM Employee e INNER JOIN Department d ON e.dno = d.dno WHERE d.name = @DepartmentName";
+    
+    using (SqlConnection connection = new SqlConnection(connectionString))
+    {
+        using (SqlCommand command = new SqlCommand(query, connection))
+        {
+            command.Parameters.AddWithValue("@DepartmentName", departmentName);
+            connection.Open();
+            using (SqlDataReader reader = command.ExecuteReader())
+            {
+                while (reader.Read())
+                {
+                    Employee employee = new Employee();
+                    employee.Eno = Convert.ToInt32(reader["eno"]);
+                    employee.Dno = Convert.ToInt32(reader["dno"]);
+                    employee.Name = reader["name"].ToString();
+                    employee.Dob = Convert.ToDateTime(reader["dob"]);
+                    employee.Designation = reader["designation"].ToString();
+                    employee.Salary = Convert.ToDecimal(reader["salary"]);
+                    employees.Add(employee);
+                }
+            }
+        }
+    }
+    
+    return employees;
+}
+
+private void btnSearch_Click(object sender, EventArgs e)
+{
+    string departmentName = txtDepartment.Text;
+    
+    List<Employee> employees = dataAccess.GetEmployeesByDepartment(departmentName);
+
+    // Bind employees to DataGridView or any other suitable control
+    dataGridViewEmployees.DataSource = employees;
+}
+
+public List<Employee> GetEmployeesByLocation(string location)
+{
+    List<Employee> employees = new List<Employee>();
+    
+    // Implement SQL query to retrieve employees working at the specified location
+    string query = "SELECT * FROM Employee e INNER JOIN Department d ON e.dno = d.dno WHERE d.location = @Location";
+    
+    using (SqlConnection connection = new SqlConnection(connectionString))
+    {
+        using (SqlCommand command = new SqlCommand(query, connection))
+        {
+            command.Parameters.AddWithValue("@Location", location);
+            connection.Open();
+            using (SqlDataReader reader = command.ExecuteReader())
+            {
+                while (reader.Read())
+                {
+                    Employee employee = new Employee();
+                    employee.Eno = Convert.ToInt32(reader["eno"]);
+                    employee.Dno = Convert.ToInt32(reader["dno"]);
+                    employee.Name = reader["name"].ToString();
+                    employee.Dob = Convert.ToDateTime(reader["dob"]);
+                    employee.Designation = reader["designation"].ToString();
+                    employee.Salary = Convert.ToDecimal(reader["salary"]);
+                    employees.Add(employee);
+                }
+            }
+        }
+    }
+    
+    return employees;
+}
+
+private void btnSearch_Click(object sender, EventArgs e)
+{
+    string location = txtLocation.Text;
+    
+    List<Employee> employees = dataAccess.GetEmployeesByLocation(location);
+
+    // Bind employees to DataGridView or any other suitable control
+    dataGridViewEmployees.DataSource = employees;
+}
+
+public List<Employee> GetEmployeesByAge(int minAge)
+{
+    List<Employee> employees = new List<Employee>();
+    
+    // Calculate the minimum birth date that corresponds to the minimum age
+    DateTime minBirthDate = DateTime.Today.AddYears(-minAge);
+    
+    // Implement SQL query to retrieve employees whose DOB is on or before the minimum birth date
+    string query = "SELECT * FROM Employee WHERE dob <= @MinBirthDate";
+    
+    using (SqlConnection connection = new SqlConnection(connectionString))
+    {
+        using (SqlCommand command = new SqlCommand(query, connection))
+        {
+            command.Parameters.AddWithValue("@MinBirthDate", minBirthDate);
+            connection.Open();
+            using (SqlDataReader reader = command.ExecuteReader())
+            {
+                while (reader.Read())
+                {
+                    Employee employee = new Employee();
+                    employee.Eno = Convert.ToInt32(reader["eno"]);
+                    employee.Dno = Convert.ToInt32(reader["dno"]);
+                    employee.Name = reader["name"].ToString();
+                    employee.Dob = Convert.ToDateTime(reader["dob"]);
+                    employee.Designation = reader["designation"].ToString();
+                    employee.Salary = Convert.ToDecimal(reader["salary"]);
+                    employees.Add(employee);
+                }
+            }
+        }
+    }
+    
+    return employees;
+}
+
+private void btnSearch_Click(object sender, EventArgs e)
+{
+    int minAge = 40; // Minimum age required
+    
+    List<Employee> employees = dataAccess.GetEmployeesByAge(minAge);
+
+    // Bind employees to DataGridView or any other suitable control
+    dataGridViewEmployees.DataSource = employees;
+}
+
+public List<Employee> GetEmployeesByDesignation(string designation)
+{
+    List<Employee> employees = new List<Employee>();
+    
+    // Implement SQL query to retrieve employees with the specified designation
+    string query = "SELECT * FROM Employee WHERE designation = @Designation";
+    
+    using (SqlConnection connection = new SqlConnection(connectionString))
+    {
+        using (SqlCommand command = new SqlCommand(query, connection))
+        {
+            command.Parameters.AddWithValue("@Designation", designation);
+            connection.Open();
+            using (SqlDataReader reader = command.ExecuteReader())
+            {
+                while (reader.Read())
+                {
+                    Employee employee = new Employee();
+                    employee.Eno = Convert.ToInt32(reader["eno"]);
+                    employee.Dno = Convert.ToInt32(reader["dno"]);
+                    employee.Name = reader["name"].ToString();
+                    employee.Dob = Convert.ToDateTime(reader["dob"]);
+                    employee.Designation = reader["designation"].ToString();
+                    employee.Salary = Convert.ToDecimal(reader["salary"]);
+                    employees.Add(employee);
+                }
+            }
+        }
+    }
+    
+    return employees;
+}
+
+public void UpdateEmployeeSalary(int eno, decimal incrementAmount)
+{
+    // Implement SQL query to update the salary of the employee
+    string query = "UPDATE Employee SET salary = salary + @IncrementAmount WHERE eno = @Eno";
+    
+    using (SqlConnection connection = new SqlConnection(connectionString))
+    {
+        using (SqlCommand command = new SqlCommand(query, connection))
+        {
+            command.Parameters.AddWithValue("@IncrementAmount", incrementAmount);
+            command.Parameters.AddWithValue("@Eno", eno);
+            connection.Open();
+            command.ExecuteNonQuery();
+        }
+    }
+}
+
+private void btnIncrement_Click(object sender, EventArgs e)
+{
+    string designation = txtDesignation.Text; // Designation for which increment is to be applied
+    decimal percentage = decimal.Parse(txtPercentage.Text); // Percentage of increment
+    
+    // Retrieve employees with the specified designation
+    List<Employee> employees = dataAccess.GetEmployeesByDesignation(designation);
+
+    // Calculate the increment amount based on the percentage
+    decimal incrementAmount = 0;
+    foreach (var employee in employees)
+    {
+        incrementAmount = employee.Salary * (percentage / 100);
+        dataAccess.UpdateEmployeeSalary(employee.Eno, incrementAmount);
+    }
+
+    MessageBox.Show("Increment applied successfully.");
+}
+
+python assignment 4
+Q.1. Write a Python program to create a file of numbers by taking input from the user and then display the
+     content of the file. You can take input of non-zero numbers, with an appropriate prompt, from the user
+     until the user enters a zero to create the file assuming that the numbers are non-zero. 
+=============================================================================================================
+ 
+fname=input('enter the file name')
+with open('fanme.txt','w') as f1:
+  while 1:
+     x=int(input('Enter the no:'))
+     if x==0:
+        break
+     else:
+        f1.write(str(x) +'\n')
+        
+Q.2. Write a Python program to create a text file of multiple lines. Display the following:
+     1. Entire text file
+     2. 1st n lines of the text tile.
+     3. m lines starting from the nth line
+     4. number of words in each line 
+============================================================================================================= 
+f = open('demo.txt')
+line = 50*'='
+
+with open('demo.txt') as f:
+    lines = f.read()
+    print('File Content : \n',lines)
+
+n = int(input('Enter the line number : '))
+
+f = open('demo.txt')
+print(line)
+print('File Content : ')
+for i in range(n):
+    print(f.readline().rstrip())
+f.close()
+print(line)
+
+l_n = int(input('Enter the starting Position : '))
+l_m = int(input('Enter the length of lines : '))
+
+f = open('demo.txt')
+temp = 1
+print(line)
+print('File Content : ')
+for i in range(l_n+l_m):
+    value = f.readline().rstrip()
+    if i+1 >= l_n and temp <= l_m:
+        temp+=1
+        print(value)
+
+f.close()
+print(line)
+f = open('demo.txt')
+for i in f:
+    l = i.split(' ')
+    print(i.rstrip(),'Words ->',len(l))
+
+
+Q.3. Write a Python program to create a file of numbers by taking input from the user. 
+     Split this file into two files where one file contains odd numbers, and the other
+     file contains even numbers from the file. You can take input of non-zero numbers,
+     with an appropriate prompt, from the user until the user enters a zero to create 
+     the file assuming that the numbers are non-zero.          
+==========================================================================================================================
+f1=open('num.txt','w')
+e1=open('even.txt','w')
+o1=open('odd.txt','w')
+while 1:
+        x=int(input('enter the value:'))
+        if x==0:
+            break
+        else:
+            f1.write(str(x)+'\n')
+            if x%2==0:
+                e1.write(str(x)+'\n')
+            else:
+                o1.write(str(x)+'\n')
+f1.close()
+e1.close()
+o1.close()
+
+f1=open('num.txt','r')
+e1=open('even.txt','r')
+o1=open('odd.txt','r')
+
+print('-----------input value------')
+print(f1.read())
+print('-----------even value------')
+print(e1.read())
+print('-----------odd value------')
+print(o1.read())
+
+
+f1.close()
+e1.close()
+o1.close()
+
+Q.4. Write a Python program to create a file of elements of any data type (mixed data type, i.e. some elements 
+     maybe of type int, some elements of type float and some elements of type string). Split this file into three 
+    file containing elements of same data type (i.e. 1st file of integers only, 2nd file of float only and 3rd file 
+     of strings only). Take input from the user to create the file. 
+===================================================================================================================
+
+f=open('int.txt','w')
+f1=open('float.txt','w')
+f2=open('string.txt','w')
+x=int(input('enter the no:'))
+for i in range(x):
+       Input=int(input('Enter the int no:'))
+       f.write(str(Input)+'\n')
+       Input=float(input('Enter the float no:'))
+       f1.write(str(Input)+'\n')
+       Input=input('Enter the string:')
+       f2.write(Input+'\n')
+
+
+
+f.close()
+f1.close()
+f2.close()
+
+f=open('int.txt','r')
+f1=open('float.txt','r')
+f2=open('string.txt','r')
+
+print('---------------int file-----------------')
+print(f.read())
+print('---------------float file---------------')
+print(f1.read())
+print('---------------string file--------------')
+print(f2.read())
+
+f.close()
+f1.close()
+f2.close()
+
+Q.5. Write a Python program to create a file containing student records where each record contain 
+    rollno and marks in 3 subjects separated by a comma (marks to be considered as list of 3 values).
+    e.g. records of students: 1, [45, 40, 35], 2, [41, 38, 39], 3, [35, 30, 37] (each line of the file 
+    containing record of only 1 student). Prepare mark list in the following format: 
+ 
+Roll No.          Mark-1          Mark-2          Mark-3          Total  
+    1               45             40               35          120 
+======================================================================================================================== 
+s=dict()
+m=[]
+while 1:
+    rno=int(input('enter the rno:'))
+    m=[]
+    if rno==0:
+        break
+    else:
+        m1=int(input('enter the mark 1:'))
+        m2=int(input('enter the mark 2:'))
+        m3=int(input('enter the mark 3:'))
+        m4=m1+m2+m3
+        m=[m1,m2,m3,m4]
+    s.update({rno:list(m)})
+f=open('demo.txt','w')
+f.write("Rno   Mark1       Mark2      Mark3      Total")
+for  i,j in s.items():
+    a= str(i)+"       "+str(j[0])+"       "+str(j[1])+"       "+str(j[2])+"       "+str(j[3])
+    f.write(a)
+f.close()
+
+Q.6. Write a Python program to create a file of strings by taking input from the user and then create a 
+     dictionary containing each string along with their      frequencies. (e.g. if the file contains ‘apple’, 
+    ‘banana’, ‘fig’, ‘apple’, ‘fig’, ‘banana’, ‘grapes’, ‘fig’, ‘grapes’, ‘apple’ then the output should be 
+    {'apple': 3, 'banana': 2, 'fig': 3, 'grapes': 2}. 
+============================================================================================================================  
+f={}
+l=[]
+while 1:
+    #with open(fname,'w') as f:
+       x=input('Enter the value:')
+       if x=='end':
+           break
+       else:
+           l.append(x)
+for i in l:
+    if i in f:
+        f[i]+=1
+
+    else:
+        f[i]=1
+       
+f1=open('fruit.txt','w')
+for a,j in f.items():
+    st=str(a)+':'+str(j)+'\n'
+    f1.write(st)
+f1.close()
+
+Q.7. Write a Python program to create a text file of multiple lines. Take input of a word from 
+     the user and then display all the lines from the file containing this word along with the
+     frequency of the word in that line. 
+==============================================================================================================
+n=input('Enter the value:')
+d=dict()
+f=open('Q7.txt',"w")
+f.write(n)
+f.close()
+
+f=open("Q7.txt")
+s=f.read()
+l=s.split("\n")
+n=input("Search word")
+print('line',n)
+for i in range(len(l)):
+    if n in l[i]:
+        w=i[i].split(" ")
+        d.update({n:0})
+        for j in range(len(w)):
+            if n==w[j]:
+                v=0
+                v=int(d[w[j]])
+                v+=1
+                d.update({w[j]:v})
+            print(l[i]," : ",d[n])
